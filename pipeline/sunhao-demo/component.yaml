@@ -1,0 +1,33 @@
+name: Train data by sunhao
+description: train 300 lines data 
+
+inputs:
+- {name: input_1, type: String, description: '--config'}
+- {name: input_2, type: String, description: '--model'}
+- {name: input_3, type: String, description: '--file_path'}
+- {name: parameter_1, type: Integer, default: '-1', description: 'For distributed training: local_rank'}
+
+outputs:
+- {name: output_1, type: String, description: 'save_dir .'}
+
+implementation:
+  container:
+    image: zhuyaguang/pipeline:v6
+    # command is a list of strings (command-line arguments). 
+    # The YAML language has two syntaxes for lists and you can use either of them. 
+    # Here we use the "flow syntax" - comma-separated strings inside square brackets.
+    command: [
+      python3, 
+      # Path of the program inside the container
+      /home/pipeline-demo/train.py,
+      --config,
+      {inputPath: input_1},
+      --model,
+      {inputPath: input_2},
+      --file_path,
+      {inputPath: input_3},
+      --local_rank, 
+      {inputValue: parameter_1},
+      --save_dir, 
+      {outputPath: output_1},
+    ]

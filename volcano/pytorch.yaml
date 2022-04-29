@@ -1,0 +1,45 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: pytorch-demo
+spec:
+  minAvailable: 3   // 该job的3个pod必须都可用
+  schedulerName: volcano    // 指定volcano为调度器
+  plugins:
+    env: []
+    svc: []
+  policies:
+    - event: PodEvicted // 当pod被驱逐时，重启该job
+      action: RestartJob
+  tasks:
+    - replicas: 1   // 指定1个ps pod
+      name: master
+      template: // ps pod的具体定义
+        spec:
+          containers:
+          - command:
+            - sh
+            - -c
+            - |
+              python3 /home/pipeline-demo/train.py
+            image: 10.100.29.62/kubeflow/train:v3
+            name: tensorflow
+            resources: {}
+          restartPolicy: Never
+    - replicas: 2   // 指定2个worker pod
+      name: worker
+      policies:
+        - event: TaskCompleted  // 2个worker完成任务时认为该job完成任务
+          action: CompleteJob
+      template: // worker pod的具体定义
+        spec:
+          containers:
+            - command:
+                - sh
+                - -c
+                - |
+                  python3 /home/pipeline-demo/train.py
+              image: 10.100.29.62/kubeflow/train:v3
+              name: tensorflow
+              resources: {}
+          restartPolicy: Never

@@ -446,7 +446,6 @@ import kfp.dsl as dsl
 import kfp.components as components
 from typing import NamedTuple
 import kfp
-from kfp import dsl
 from kfp.components import func_to_container_op, InputPath, OutputPath
 from kubernetes.client.models import V1ContainerPort
 @dsl.pipeline(

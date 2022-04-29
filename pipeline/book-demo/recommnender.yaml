@@ -1,0 +1,20 @@
+apiVersion: kubeflow.org/v1
+kind: TFJob
+metadata:
+  name: recommenderjob
+  namespace: kubeflow-user-example-com
+spec:
+  tfReplicaSpecs:
+    Worker:
+      replicas: 1
+      restartPolicy: Never
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          containers:
+          - image: 10.100.29.62/kubeflow/zhuyaguang/pipeline:v6
+            name: tensorflow
+          imagePullSecrets:
+          - name: harbor

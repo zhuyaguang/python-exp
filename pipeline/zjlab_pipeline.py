@@ -22,34 +22,38 @@ from kfp import dsl
 from kfp.components import func_to_container_op, InputPath, OutputPath
 from kubernetes.client.models import V1ContainerPort
 
-def load_data():
-    # Using readlines()
-    file1 = open('trainData.txt', 'r')
-    Lines = file1.readlines()
- 
-    count = 0
-    # Strips the newline character
-    for line in Lines:
-        count += 1
-        print("Line{}: {}".format(count, line.strip()))
-
-        
+# 方法1 baseimage+command
+# 方法2 func_to_container_op （demo1.py） 需要拉取 gcr.io/google-containers/busybox         
 def pass_file_op():
     return dsl.ContainerOp(
         name='pass_file',
-        image='zhuyaguang/pipeline:v1',
+        image='zhuyaguang/pipeline:v4',
         command=['sh', '-c'],
-        arguments=['cat trainData.txt'],
+        arguments=['cat /pipelines/component/src/trainData.txt '],
+        file_outputs={
+            'data': '/pipelines/component/src/trainData.txt',
+        }
+    )
+
+# 拷贝文件到根目录
+def copy_op():
+    return dsl.ContainerOp(
+        name='copy_file',
+        image='zhuyaguang/pipeline:v4',
+        command=['sh', '-c'],
+        arguments=['cp /pipelines/component/src/trainData.txt .'],
         file_outputs={
             'data': '/trainData.txt',
         }
     )
 
+
+# base镜像+command
 def train_op(text,config:str,model:str):
     return dsl.ContainerOp(
         name='trian_file',
-        image='zhuyaguang/pipeline:v2',
-        command = ['python', 'testdemo.py'],
+        image='zhuyaguang/pipeline:v4',
+        command = ['python3', '/pipelines/component/src/testdemo.py'],
         arguments=[
             "--config", config,
             "--model", model
@@ -76,7 +80,7 @@ def print_text(text_path: InputPath()): # The "text" input is untyped so that an
 #     args = parser.parse_args()
 #     train(args)
 def train(config:str,model:str,file_path:str,ref_path:str,save_dir:str,local_rank:int):
-    from transformers import BertConfig,BertTokenizer,BertForMaskedLM,DataCollatorForWholeWordMask,Trainer,TrainingArguments,LineByLineWithRefDataset
+    from transformers import BertConfig,BertTokenizer,BertForMaskedLM,DataCollatorForLanguageModeling,Trainer,LineByLineTextDataset,TrainingArguments
     import torch
     import tokenizers
     import argparse
@@ -93,9 +97,9 @@ def train(config:str,model:str,file_path:str,ref_path:str,save_dir:str,local_ran
     
     model.resize_token_embeddings(len(tokenizer))  
                             
-    train_dataset = LineByLineWithRefDataset(tokenizer = tokenizer,file_path = file_path, ref_path = ref_path, block_size=512)      
+    train_dataset = LineByLineTextDataset(tokenizer = tokenizer,file_path = file_path, ref_path = ref_path, block_size=512)      
             
-    data_collator = DataCollatorForWholeWordMask(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
+    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=0.15)
     
     pretrain_batch_size=16
     num_train_epochs=5
@@ -116,21 +120,21 @@ def train(config:str,model:str,file_path:str,ref_path:str,save_dir:str,local_ran
 def zjlab1_pipeline(url='gs://ml-pipeline/sample-data/shakespeare/shakespeare1.txt',config="default config",model="default model"):
     """A pipeline load data to train."""
 
-    # print_task = print_text(url)
-
-    load_data_op=func_to_container_op(
-        func=load_data,
-        base_image="zhuyaguang/pipeline:v1",  
-    )
-    load_data_task = load_data_op()
 
     pass_file_task = pass_file_op()
-    train_task = train_op(pass_file_task.output,config,model)
+
+    print_task = print_text(pass_file_task.output)
+    # 运行一个带参数的python函数
+
+    # 方法1 base镜像+command
+    copy_task = copy_op()
+   
+    train_task = train_op(copy_task.output,config,model)
     
 
 if __name__ == '__main__':
     # Compiling the pipeline
-    kfp.compiler.Compiler().compile(zjlab1_pipeline, 'zjlab2.yaml')
+    kfp.compiler.Compiler().compile(zjlab1_pipeline, 'zjlab3.yaml')
 
 
 

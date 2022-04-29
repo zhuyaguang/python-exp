@@ -14,6 +14,10 @@
 # limitations under the License.
 
 
+from ast import arguments
+from unicodedata import name
+
+from setuptools import Command
 from kfp import dsl, compiler
 
 
@@ -36,6 +40,17 @@ def echo_op(text):
         command=['sh', '-c'],
         arguments=['echo "$0"', text]
     )
+
+fetch = kfp.dsl.ContainerOp(
+    name="download",
+    command=['sh','-c'],
+    arguments=[
+        'sleep 1;'
+        'mkdir -p /tmp/data;'
+        'wget '+ data_url +' -O /tmp/data/result.csv'
+    ],
+    file_outputs={'downloaded':'/tmp/data'}
+)
 
 @dsl.pipeline(
     name='sequential-pipeline',

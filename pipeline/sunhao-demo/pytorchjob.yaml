@@ -1,0 +1,31 @@
+apiVersion: "kubeflow.org/v1"
+kind: PyTorchJob
+metadata:
+  name: pytorch-simple
+  namespace: kubeflow
+spec:
+  pytorchReplicaSpecs:
+    Master:
+      replicas: 1
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+            - name: pytorch
+              image: 10.100.29.62/kubeflow/zhuyaguang/pipeline:v6
+              imagePullPolicy: Always
+              command:
+                - "python3"
+                - "/home/pipeline-demo/train.py"
+    Worker:
+      replicas: 1
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+            - name: pytorch
+              image: 10.100.29.62/kubeflow/zhuyaguang/pipeline:v6
+              imagePullPolicy: Always
+              command:
+                - "python3"
+                - "/home/pipeline-demo/train.py"

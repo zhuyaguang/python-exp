@@ -1,0 +1,33 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: test-pytorch-job
+spec:
+  minAvailable: 3
+  schedulerName: volcano
+  priorityClassName: high-priority
+  policies:
+    - event: PodEvicted
+      action: RestartJob
+  plugins:
+    ssh: []
+    env: []
+    svc: []
+  maxRetry: 5
+  queue: default
+  tasks:
+    - replicas: 6
+      name: "default-pytorch"
+      template:
+        metadata:
+          name: web
+        spec:
+          containers:
+          - image: 10.100.29.62/kubeflow/train:v3
+            command: ["python3",  "/home/pipeline-demo/train.py"]
+            imagePullPolicy: IfNotPresent
+            name: pytorch-demo
+            resources:
+              requests:
+                cpu: "1"
+          restartPolicy: OnFailure
