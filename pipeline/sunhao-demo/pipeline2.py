@@ -15,39 +15,39 @@
 
 
 from ast import arguments
+from re import T
 from unicodedata import name
 
 from setuptools import Command
 from kfp import dsl, compiler
 
     
-def sunhao_op():
+def sunhao_op(train_time='0'):
     return dsl.ContainerOp(
         name='sunhao-train',
         image='10.100.29.62/kubeflow/train:v3',
-        command=['python3', '/home/pipeline-demo/train.py'],
-        file_outputs={
-            'data': '/home/pipeline-demo/config.json',
-        }
+        #command=['python3', '/home/pipeline-demo/train.py'],
+        command=['sh','-c'],
+        # arguments=[
+        #     "python3 /home/pipeline-demo/train.py",
+        #     "--train_time", train_time,
+        # ],
+        arguments=['echo "$0"', train_time]
     )
 
-def sunhao2_op():
-    return dsl.ContainerOp(
-        name='sunhao2-train',
-        image='10.100.29.62/kubeflow/train:v3',
-        command=['sh', '-c'],
-        arguments=['python3 /home/pipeline-demo/train.py']
-    )
+def digui(train_time='0'):
+    while True:
+        sunhao_op(train_time)
+        train_time=train_time+1
+
 
 @dsl.pipeline(
     name='sunhao-pipeline',
     description='A pipeline with two sequential steps.'
 )
-def sequential_pipeline():
+def sequential_pipeline(train_time=0):
     """A pipeline with two sequential steps."""
-
-    download_task = sunhao_op()
-    download_task2 = sunhao2_op()
+    download_task = sunhao_op(train_time)
 
 if __name__ == '__main__':
     compiler.Compiler().compile(sequential_pipeline, 'sh.yaml')

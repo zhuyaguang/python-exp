@@ -11,12 +11,23 @@ from transformers import AdamW, BertTokenizer, BertForMaskedLM, BertModel
 from torch.utils.data import DataLoader, Dataset
 from typing import Tuple, List
 from torch.nn.utils.rnn import pad_sequence
+from minio import Minio
 
-ask_and_answer_path = './ask_and_answer.json'
-download_model_path = './bert-fine-tune/'
+client = Minio('10.101.32.11:9000',access_key='admin',secret_key='root123456',secure=False)
 
-batch_size = 16
-epochs = 50
+
+for item in client.list_objects("data",recursive=True):
+    data = client.get_object("data", item.object_name)
+    print(item.object_name)
+    with open("/home/pipeline-demo/yukan-demo/"+item.object_name,"wb") as fp:
+        for d in data.stream(1024):
+            fp.write(d)
+
+ask_and_answer_path = '/home/pipeline-demo/yukan-demo/ask_and_answer.json'
+download_model_path = '/home/pipeline-demo/yukan-demo/result/'
+
+batch_size = 32
+epochs = 2
 max_length = 64
 seed = 900
 
@@ -25,8 +36,9 @@ np.random.seed(seed)
 torch.random.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 
-tokenizer = BertTokenizer.from_pretrained('./bert-base-chinese/')
-model = BertForMaskedLM.from_pretrained('./bert-base-chinese/')
+
+tokenizer = BertTokenizer.from_pretrained('/home/pipeline-demo/yukan-demo/bert-base-chinese/')
+model = BertForMaskedLM.from_pretrained('/home/pipeline-demo/yukan-demo/bert-base-chinese/')
 # model = BertModel.from_pretrained('bert-base-chinese')
 
 class LineByLineTextDataset(Dataset):  
@@ -94,34 +106,51 @@ class Trainer:
     def train(self, epochs):
         for epoch in range(epochs):
             ave_loss = self.iteration(epoch, self.dataloader)
-            if (epoch + 1) % 5 == 0:
-                model_path = download_model_path + f'Epoch{epoch + 1}_Batchsize{batch_size}_Loss{ave_loss:f}_DateTime{time.strftime("%Y%m%d_%H%M%S", time.localtime())}/.'
+            #if (epoch + 1) % 5 == 0:
+            if True :
+                #model_path = download_model_path + f'Epoch{epoch + 1}/.'
+                base_path= f'Epoch{epoch + 1}_Batchsize{batch_size}_Loss{ave_loss:f}_DateTime{time.strftime("%Y%m%d_%H%M%S", time.localtime())}/'
+                second_path= download_model_path + base_path
+                model_path = second_path +"."
+                print(f"{ave_loss:f}")
+                print(model_path)
                 model.save_pretrained(model_path)
                 print(f'Download into {model_path}')
+                configPath = second_path+"config.json"
+                modelPath =  second_path+"pytorch_model.bin"
+                s3Path1 = base_path+"config.json"
+                s3Path2 = base_path+"pytorch_model.bin"
+                print("==========")
+                print(configPath,modelPath,s3Path1,s3Path2)
+                client.fput_object("result",s3Path1, configPath)
+                client.fput_object("result",s3Path2, modelPath)
+
       
     def iteration(self, epoch, dataloader, train=True):
         str_code = 'Train'
         total_loss = 0.0
-        with tqdm_notebook(total=len(dataloader), desc='Epoch %d Training' %epoch, ncols = 800) as pbar:
-            for i,batch in enumerate(dataloader):
-                # print(batch)
-                inputs, labels = self._mask_tokens(batch)
-                inputs = inputs.to(self.device)
-                labels = labels.to(self.device)
-                outputs = self.model(input_ids=inputs, labels=labels)
-                loss = outputs.loss.mean()
+        #with tqdm_notebook(total=len(dataloader), desc='Epoch %d Training' %epoch, ncols = 800) as pbar:
+        for i,batch in enumerate(dataloader):
+            # print(batch)
+            print(i)
+            print(len(dataloader))
+            inputs, labels = self._mask_tokens(batch)
+            inputs = inputs.to(self.device)
+            labels = labels.to(self.device)
+            outputs = self.model(input_ids=inputs, labels=labels)
+            loss = outputs.loss.mean()
 
-                if train:
-                    self.model.zero_grad()
-                    self.optim.zero_grad()
-                    loss.backward()
-                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
-                    self.optim.step()
+            if train:
+                self.model.zero_grad()
+                self.optim.zero_grad()
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+                self.optim.step()
 
-                total_loss += loss.item()
-                ave_loss = total_loss/(i+1)          
-                pbar.set_postfix(loss=float(ave_loss))
-                pbar.update(1)
+            total_loss += loss.item()
+            ave_loss = total_loss/(i+1)          
+                # pbar.set_postfix(loss=float(ave_loss))
+                # pbar.update(1)
         return ave_loss        
           
     def _mask_tokens(self, inputs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:

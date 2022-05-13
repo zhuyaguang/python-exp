@@ -8,13 +8,12 @@ from kfp import dsl, compiler
 def yukan_op():
     return dsl.ContainerOp(
         name='yukan-train',
-        image='10.100.29.62/kubeflow/train-bert:v3',
+        image='10.100.29.62/kubeflow/train-bert:v5',
         command=['python3', '/home/pipeline-demo/yukan-demo/train.py'],
-
     )
 
 @dsl.pipeline(
-    name='sunhao-pipeline',
+    name='yukan-pipeline',
     description='A pipeline with two sequential steps.'
 )
 def sequential_pipeline():
