@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pytorch-yk2-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: pytorch-job
+        image: 10.100.29.62/kubeflow/train-bert:v5
+        resources:
+          requests:
+            memory: "2G"
+        command: ["/bin/sh"]
+        args: ["-c", "python3 /home/pipeline-demo/yukan-demo/train.py"]
+      restartPolicy: Never
+  backoffLimit: 4
