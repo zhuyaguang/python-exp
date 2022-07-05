@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: train-patent-
+spec:
+  entrypoint: train
+  arguments:
+    parameters:
+    - name: train_time
+      value: 1
+  templates:
+  - name: train
+    inputs:
+      parameters:
+      - name: train_time    
+    script:
+      image: 10.100.29.62/kubeflow/train-patent:v2
+      command: [bash]
+      source: |
+        python /home/pipeline-demo/guo-demo/train.py --train_time="{{inputs.parameters.train_time}}"

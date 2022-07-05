@@ -11,7 +11,6 @@ from transformers import (
 import numpy as np
 import random
 import time
-import numpy as np
 from pymilvus import (
     connections,
     utility,
