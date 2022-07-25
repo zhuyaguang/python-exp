@@ -2,37 +2,33 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: frontend
-  name: frontend-service
+    app: backend
+  name: backend-service
 spec:
   ports:
     - name: http
       protocol: TCP
-      port: 80
-      targetPort: 80
-    - name: https
-      protocol: TCP
-      port: 443
-      targetPort: 443
-      nodePort: 80
+      port: 18000
+      targetPort: 18000
+      nodePort: 18000 # 修改 apiserver - --service-node-port-range=1-65535
   selector:
-    app: frontend
+    app: backend
   type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: frontend
+    app: backend
   managedFields:
-  name: frontend-deployment
+  name: backend-deployment
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: frontend
+      app: backend
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -42,17 +38,15 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        app: frontend
+        app: backend
     spec:
       containers:
       # 需要注意修改对应的镜像
-      - image: 10.100.29.62/front/flab:v2
+      - image: 10.100.29.62/front/java:v3
         imagePullPolicy: IfNotPresent
-        name: frontend
+        name: backend
         ports:
-        - containerPort: 80
-          protocol: TCP
-        - containerPort: 443
+        - containerPort: 18000
           protocol: TCP
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
