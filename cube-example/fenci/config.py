@@ -1,0 +1,10 @@
+model_name = "BiLSTM_CRF"
+data_path = "./data/"
+data_name = "annotated_data.txt"
+data_rate = [0.7, 0.1, 0.2]
+input_size = 768  # embedding size
+hidden_size = 512
+device = 'cpu'
+lr = 0.00001
+epochs = 10
+batch_size = 64

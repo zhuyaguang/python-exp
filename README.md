@@ -1,9 +1,10 @@
 # python-exp
 
-## front-k8s
+## flab on k8s
+### front-k8s
 前端的 vue+nginx 在 K8S 上部署
 
-## java-k8s
+### java-k8s
 
 java服务在 K8S 上部署
 
