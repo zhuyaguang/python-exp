@@ -5,3 +5,8 @@
 * helm install demo radondb/mysql-operator
 
 * kubectl apply -f mysql_v1alpha1_mysqlcluster.yaml
+
+* 打开 mysql 监控
+
+  metricsOpts:
+    enabled: false

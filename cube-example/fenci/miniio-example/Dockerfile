@@ -7,4 +7,4 @@ LABEL maintainer "zhuyaguang <zhuyaguang@zhejianglab.com>"
 COPY ./download-data.py .
 
 
-# docker build -f Dockerfile -t 10.100.29.62/kubeflow/cube:v1 ./
+# docker build -f Dockerfile -t 10.100.29.62/kubeflow/download:v3 ./

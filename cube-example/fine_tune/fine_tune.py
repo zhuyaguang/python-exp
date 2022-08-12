@@ -82,11 +82,11 @@ def train(args):
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     max_length = 512
     set_seed(1994)
-    path_for_token = 'nezha/'
+    path_for_token = f"{args.data_path}/nezha/"
     base_path = f'Epoch-triplet-{args.recall_path}-{args.target}'
     tokenizer = BertTokenizer.from_pretrained(path_for_token, max_length=max_length)
     # args_file_path = f"./triplet_loss_data/{args.recall_path}_{args.target}_data_{args.data_index}.csv" if args.data_index else f"./triplet_loss_data/{args.recall_path}_{args.target}_data.csv"
-    args_file_path = f"./triplet_loss_data/{args.recall_path}_{args.target}_data_{args.data_index}.csv"
+    args_file_path = f"{args.data_path}/triplet_loss_data/{args.recall_path}_{args.target}_data_{args.data_index}.csv"
     print(f"========Now training for {args.recall_path}-{args.target} with data index {args.data_index}")
     print(f"Training on gpu:{args.gpu}")
     print(f"Load model from checkpoint:{args.model_path}")
@@ -173,6 +173,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_path",type=str,help="checkpoint to load base model")
     parser.add_argument("--gpu",type=str,required=True,help="GPU to use")
     parser.add_argument("--data_index",type=str,help="set the piece of data")
+    parser.add_argument("--data_path",type=str,help="/mnt/admin/pre-train")
     args = parser.parse_args()
     args.train_time = 1
     args.local_rank = -1
