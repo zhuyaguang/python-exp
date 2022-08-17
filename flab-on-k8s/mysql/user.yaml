@@ -1,7 +1,7 @@
 apiVersion: mysql.radondb.com/v1alpha1
 kind: MysqlUser
 metadata:
- 
+  namespace: flab
   name: root-user-cr  # 用户 CR 名称，建议使用一个用户 CR 管理一个用户。
 spec:
   user: root_user  # 需要创建/更新的用户的名称。

@@ -28,10 +28,10 @@ def serve(model, sentence):
     while pos<n:
         tmp = ''
         if pos < n and ans[pos][0] == 'B':
-            tags.append(ans[pos])
+            tags.append(ans[pos][2:])
             tmp += sentence[pos]
             pos += 1
-            while pos<n and ans[pos][0] == 'I':
+            while pos < n and ans[pos][0] != 'B' and ans[pos][0] != 'O':
                 tmp += sentence[pos]
                 pos += 1
             output.append(tmp)
@@ -48,8 +48,8 @@ def serve(model, sentence):
     # for i in tags:
     #     print(i+',')
     # print('方案二')
-    outputs = str.join(output, ',')
-    tagsStr = str.join(tags, ',')
+    outputs = ','.join(output)
+    tagsStr = ','.join(tags)
     return outputs + '\n' + tagsStr
 
 

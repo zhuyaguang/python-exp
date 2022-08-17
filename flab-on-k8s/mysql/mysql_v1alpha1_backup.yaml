@@ -2,6 +2,7 @@ apiVersion: mysql.radondb.com/v1alpha1
 kind: Backup
 metadata:
   name: backup-sample1
+  namespace: flab
 spec:
   # Add fields here
   hostName: sample-mysql-0

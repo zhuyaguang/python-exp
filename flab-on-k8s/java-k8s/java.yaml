@@ -4,6 +4,7 @@ metadata:
   labels:
     app: backend
   name: backend-service
+  namespace: flab
 spec:
   ports:
     - name: http
@@ -22,6 +23,7 @@ metadata:
     app: backend
   managedFields:
   name: backend-deployment
+  namespace: flab
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
