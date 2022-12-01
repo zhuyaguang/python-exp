@@ -4,18 +4,18 @@ metadata:
   labels:
     app: frontend
   name: frontend-service
-  namespace: flab
 spec:
   ports:
     - name: http
       protocol: TCP
       port: 80
       targetPort: 80
+      nodePort: 80
     - name: https
       protocol: TCP
       port: 443
       targetPort: 443
-      nodePort: 80 # 修改 apiserver - --service-node-port-range=1-65535
+      nodePort: 443 # 修改 apiserver - --service-node-port-range=1-65535
   selector:
     app: frontend
   type: NodePort

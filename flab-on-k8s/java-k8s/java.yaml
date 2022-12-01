@@ -44,7 +44,7 @@ spec:
     spec:
       containers:
       # 需要注意修改对应的镜像
-      - image: 10.100.29.62/front/java:v3
+      - image: 10.100.29.62/front/java:latest
         imagePullPolicy: IfNotPresent
         name: backend
         ports:
