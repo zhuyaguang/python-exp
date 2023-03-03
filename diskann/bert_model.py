@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Union
 import uvicorn
+import asyncio
 
 
 class FineTunedModel:
@@ -79,6 +80,8 @@ class FineTunedModel:
 
 
 app = FastAPI()
+# 创建一个最大并发请求数量为 100 的 Semaphore 对象
+semaphore = asyncio.Semaphore(100)
 
 class Item(BaseModel):
     strarr: List[str] = []
@@ -88,20 +91,22 @@ my_model.add_model("nezha","/home/zjlab/zyg/nezha_fine_tuned")
 
 @app.post("/str2vec/")
 async def create_item(item:Item):
+    # 在请求处理函数中使用 with 语句获取 Semaphore 对象的使用权
+    async with semaphore:
 
-    str_ = item.strarr
-    print(str_)
-    result = my_model.get_vectors_norm(str_)
-    print("=======",result)
-    if my_model.device == "cpu":
-        list_result = result.numpy().tolist()
-    else:
-        list_result = result.cpu().numpy().tolist()
-    
-    print("*******",list_result)
+        str_ = item.strarr
+        print(str_)
+        result = my_model.get_vectors_norm(str_)
+        print("=======",result)
+        if my_model.device == "cpu":
+            list_result = result.numpy().tolist()
+        else:
+            list_result = result.cpu().numpy().tolist()
+        
+        print("*******",list_result)
 
-    
-    return {'data': list_result}
+        
+        return {'data': list_result}
 
 if __name__ == "__main__":
     uvicorn.run(app=app, host='0.0.0.0', port=8789)
