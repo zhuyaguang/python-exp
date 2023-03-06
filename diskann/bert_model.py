@@ -110,6 +110,8 @@ async def create_item(item:Item):
 
         
         return {'data': list_result}
+    else:
+        raise HTTPException(status_code=419, detail="显存不足，请放低请求频率")
     
 def get_gpu_mem_info(gpu_id=0):
     """
