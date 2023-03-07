@@ -86,7 +86,7 @@ app = FastAPI()
 class Item(BaseModel):
     strarr: List[str] = []
 
-my_model = FineTunedModel(7)
+my_model = FineTunedModel(0)
 my_model.add_model("nezha","/home/zjlab/zyg/nezha_fine_tuned")
 
 @app.post("/str2vec/")
@@ -96,17 +96,18 @@ async def create_item(item:Item):
 
     # 在请求处理函数中使用 with 语句获取 Semaphore 对象的使用权
     #async with semaphore:
-    if gpu_use_rate >= 0.9:
+    if gpu_use_rate <= 0.9:
         str_ = item.strarr
-        print(str_)
-        result = my_model.get_vectors_norm(str_)
-        print("=======",result)
+        print('本次请求长度',len(str_))
+        if len(str_)>0:
+            print('本次请求第一个元素', str_[0])
+        result = await my_model.get_vectors_norm(str_)
         if my_model.device == "cpu":
             list_result = result.numpy().tolist()
         else:
             list_result = result.cpu().numpy().tolist()
         
-        print("*******",list_result)
+        print("=======结果向量的长度",len(list_result))
 
         
         return {'data': list_result}
