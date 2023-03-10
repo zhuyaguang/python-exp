@@ -98,33 +98,31 @@ def create_item(item:Item):
 
     # 在请求处理函数中使用 with 语句获取 Semaphore 对象的使用权
     #async with semaphore:
-    if gpu_use_rate <= 0.9:
-        str_ = item.strarr
-        print('本次请求长度',len(str_))
-        hash_value = ''
-        if len(str_)>0:
-            hash_value = hash(str_[0])
-            print('本次请求第一个元素的哈希和值：', hash_value, str_[0])
-        start_time = time.time()
-        result = my_model.get_vectors_norm(str_)
-        if my_model.device == "cpu":
-            list_result = result.numpy().tolist()
-            end_time = time.time()
-            print(f"向量化(cpu)执行时间为：{elapsed_time}秒, 哈希值为{hash_value}")
-        else:
-            list_result = result.cpu().numpy().tolist()
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            print(f"向量化(gpu)执行时间为：{elapsed_time}秒, 哈希值为{hash_value}")
-        
-        print("=======结果向量的长度",len(list_result), "哈希值为", hash_value)
-
+    str_ = item.strarr
+    print('本次请求长度',len(str_))
+    hash_value = ''
+    if len(str_)>0:
+        hash_value = hash(str_[0])
+        print('本次请求第一个元素的哈希和值：', hash_value, str_[0])
+    start_time = time.time()
+    result = my_model.get_vectors_norm(str_)
+    if my_model.device == "cpu":
+        list_result = result.numpy().tolist()
         end_time = time.time()
-
-        print(f"向量化(return前)执行时间为：{elapsed_time}秒, 哈希值为{hash_value}")
-        return {'data': list_result}
+        print(f"向量化(cpu)执行时间为：{elapsed_time}秒, 哈希值为{hash_value}")
     else:
-        raise HTTPException(status_code=419, detail="显存不足，请放低请求频率")
+        list_result = result.cpu().numpy().tolist()
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"向量化(gpu)执行时间为：{elapsed_time}秒, 哈希值为{hash_value}")
+    
+    print("=======结果向量的长度",len(list_result), "哈希值为", hash_value)
+
+    end_time = time.time()
+
+    print(f"向量化(return前)执行时间为：{elapsed_time}秒, 哈希值为{hash_value}")
+    return {'data': list_result}
+
     
 def get_gpu_mem_info(gpu_id=1):
     """
