@@ -16,6 +16,7 @@ class FineTunedModel:
             self.models = {}
             self.tokenizers = {}
             self.device = f"cuda:{device_index}" if torch.cuda.is_available() else "cpu"
+            self.device = "cpu"
 
         def show_name(self)->set:
             return self.names
