@@ -15,11 +15,6 @@ def main(args):
     file1.writelines(L)
     file1.close() #to change file access modes
   
-    file1 = open("trainData.txt","r+") 
-  
-    print("Output of Read function is ")
-    print(file1.read())
-    print()
     
     
 
